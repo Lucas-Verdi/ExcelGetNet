@@ -9,12 +9,18 @@ import pywintypes
 import ctypes
 from threading import Thread
 
+datas = []
+cont = 4
+
 class Th(Thread):
 
     def __init__(self, num):
         Thread.__init__(self)
         self.num = num
     def run(self):
+
+        global datas
+        global cont
 
         #Criando janela para selecionar o arquivo
         root = tk.Tk()
@@ -51,10 +57,14 @@ class Th(Thread):
         if celula is not None:
             print('Célula encontrada:', celula.Address)
             celula.Select()
-            #pyautogui.PAUSE = 0.5
-            #pyautogui.moveTo(celula.left, celula.top, duration=0.25)
         else:
             print('Erro: célula não encontrada')
+
+        last_row = planilha.range('B4').end('down').row
+        for i in range(4, last_row + 1):
+            data_local = planilha.range('B{}'.format(i)).value
+            datas.append(data_local)
+            cont += 1
 
         #Adicionando a fórmula PROCV
         pyautogui.sleep(0.5)
@@ -63,7 +73,7 @@ class Th(Thread):
         pyautogui.sleep(0.5)
         pyautogui.press('right')
         pyautogui.press('right')
-        pyautogui.typewrite('=PROCV(B12;B:B;1;0)')
+        pyautogui.typewrite('=PROCV(B{};B:B;1;0)'.format(cont - 1))
         pyautogui.press('ENTER')
 
         #Adicionando o filtro para total
