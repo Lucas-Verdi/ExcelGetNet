@@ -8,6 +8,8 @@ import pythoncom
 import pywintypes
 import ctypes
 from threading import Thread
+from pyautogui import sleep
+
 
 datas = []
 cont = 4
@@ -52,43 +54,26 @@ class Th(Thread):
         #Selecionando a planilha
         planilha = pastadetrabalho.sheets[1]
 
-        #Achando a palavra total e movendo o mouse até ela
-        celula = planilha.api.Cells.Find('Total')
-        if celula is not None:
-            print('Célula encontrada:', celula.Address)
-            celula.Select()
-        else:
-            print('Erro: célula não encontrada')
+        last_row = planilha.range('D5').end('down').row
 
-        last_row = planilha.range('B4').end('down').row
         for i in range(4, last_row + 1):
-            data_local = planilha.range('B{}'.format(i)).value
-            datas.append(data_local)
-            cont += 1
+            cell = planilha.range('B{}'.format(i)).value
+            print(cell)
+            if cell == None:
+                pyautogui.moveTo(400, 0)
+                pyautogui.click()
+                planilha.range('B{}'.format(i - 1)).select()
+                sleep(0.1)
+                pyautogui.hotkey('ctrl', 'c')
+                pyautogui.press('right', presses=3)
+                pyautogui.press('down')
+                pyautogui.hotkey('ctrl', 'v')
 
-        #Adicionando a fórmula PROCV
-        pyautogui.sleep(0.5)
-        pyautogui.moveTo(400, 0)
-        pyautogui.click()
-        pyautogui.sleep(0.5)
-        pyautogui.press('right')
-        pyautogui.press('right')
-        pyautogui.typewrite('=PROCV(B{};B:B;1;0)'.format(cont - 1))
-        pyautogui.press('ENTER')
-
-        #Adicionando o filtro para total
+        # Adicionando o filtro para total
         intervalo = planilha.range('C1:C' + str(planilha.cells.last_cell.row)).api
         intervalo.AutoFilter(1, "Total")
         pyautogui.press('up')
 
-        #Arrastando a formula até o fim da coluna
-        pyautogui.hotkey('ctrl', 'c')
-        col = 'E'
-        last_row = planilha.cells.last_cell.row
-        define_row = 850
-        range_string = f'{col}5:{col}{define_row}'
-        planilha.range(range_string).select()
-        pyautogui.hotkey('ctrl', 'v')
 
 
 def start():
